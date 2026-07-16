@@ -8,9 +8,20 @@ import { copyCodeToClipboard, downloadCode } from "@/lib/code/clipboard";
 interface CodePanelProps {
   code: string | null;
   isLoading?: boolean;
+  loadingMessage?: string | null;
 }
 
-export function CodePanel({ code, isLoading }: CodePanelProps) {
+function CodeSkeleton() {
+  return (
+    <div className="space-y-3 p-4" aria-hidden="true">
+      {["w-4/5", "w-full", "w-3/5", "w-full", "w-2/3", "w-5/6", "w-1/2"].map((width) => (
+        <div key={width} className={`h-3 animate-pulse rounded bg-neutral-100 ${width}`} />
+      ))}
+    </div>
+  );
+}
+
+export function CodePanel({ code, isLoading, loadingMessage }: CodePanelProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -54,8 +65,11 @@ export function CodePanel({ code, isLoading }: CodePanelProps) {
       </div>
       <div className="flex-1 overflow-auto">
         {isLoading ? (
-          <div className="flex h-full items-center justify-center p-6 text-sm text-neutral-400">
-            코드를 생성하고 있습니다...
+          <div className="flex h-full flex-col">
+            <div className="border-b border-neutral-100 px-4 py-3 text-sm text-neutral-500">
+              {loadingMessage ?? "코드를 생성하고 있습니다..."}
+            </div>
+            <CodeSkeleton />
           </div>
         ) : code ? (
           <SyntaxHighlighter

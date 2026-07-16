@@ -7,10 +7,12 @@ import { Container } from "@/components/layout/Container";
 import { AnalysisSteps } from "@/components/result/AnalysisSteps";
 import { AnalysisErrorBanner } from "@/components/result/AnalysisErrorBanner";
 import { AnalysisSummary } from "@/components/result/AnalysisSummary";
+import { AnalysisStatusBanner } from "@/components/result/AnalysisStatusBanner";
 import { CodePanel } from "@/components/result/CodePanel";
 import { PreviewPanel } from "@/components/result/PreviewPanel";
 import { UploadedImagePreview } from "@/components/result/UploadedImagePreview";
 import { useAnalysisPipeline } from "@/hooks/useAnalysisPipeline";
+import { getAnalysisProgress, getPanelLoadingMessage } from "@/lib/analysis/progress";
 import { buildScaffoldFromJson, prepareCodeForPreview } from "@/lib/code/sandpack";
 import { useUploadStore } from "@/store/useUploadStore";
 
@@ -19,6 +21,11 @@ export function ResultContent() {
   const image = useUploadStore((s) => s.image);
   const { steps, layout, tokens, code, error, isRunning, run, retry } = useAnalysisPipeline();
   const hasStarted = useRef(false);
+  const progress = useMemo(() => getAnalysisProgress(steps), [steps]);
+  const panelLoadingMessage = useMemo(
+    () => getPanelLoadingMessage(steps, isRunning),
+    [steps, isRunning],
+  );
 
   useEffect(() => {
     if (!image) {
@@ -45,9 +52,10 @@ export function ResultContent() {
 
   if (!image) return null;
 
-  const codeStep = steps.find((s) => s.id === "code");
-  const isCodeLoading = codeStep?.status === "running";
-  const isAnalysisDone = codeStep?.status === "done";
+  const isAnalysisLoading = isRunning;
+  const isCodeLoading = isAnalysisLoading;
+  const isAnalysisDone = progress.isComplete;
+
   const showSummary = layout || tokens;
 
   return (
@@ -68,8 +76,16 @@ export function ResultContent() {
             <UploadedImagePreview previewUrl={image.previewUrl} name={image.name} />
           </div>
           <div className="space-y-4 lg:col-span-3">
+            {isRunning ? (
+              <AnalysisStatusBanner
+                message={progress.message}
+                percent={progress.percent}
+                stepIndex={progress.stepIndex}
+                totalSteps={progress.totalSteps}
+              />
+            ) : null}
             <div className="rounded-xl border border-neutral-200 bg-white p-4">
-              <AnalysisSteps steps={steps} />
+              <AnalysisSteps steps={steps} progressPercent={isRunning ? progress.percent : undefined} />
             </div>
             {error ? (
               <AnalysisErrorBanner
@@ -88,10 +104,15 @@ export function ResultContent() {
         ) : null}
 
         <div className="grid grid-cols-1 gap-6 lg:min-h-[70vh] lg:grid-cols-2">
-          <CodePanel code={preparedCode?.code ?? null} isLoading={isCodeLoading} />
+          <CodePanel
+            code={preparedCode?.code ?? null}
+            isLoading={isCodeLoading}
+            loadingMessage={panelLoadingMessage}
+          />
           <PreviewPanel
             code={preparedCode?.validation.valid ? (preparedCode?.code ?? null) : null}
             isLoading={isCodeLoading}
+            loadingMessage={panelLoadingMessage}
             validationError={
               isAnalysisDone && preparedCode && !preparedCode.validation.valid
                 ? preparedCode.validation.error

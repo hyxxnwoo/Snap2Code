@@ -1,3 +1,4 @@
+import { Spinner } from "@/components/ui/Spinner";
 import type { AnalysisStep, AnalysisStepStatus } from "@/types";
 
 const STATUS_STYLES: Record<AnalysisStepStatus, { circle: string; text: string; label?: string }> =
@@ -25,30 +26,53 @@ const STATUS_STYLES: Record<AnalysisStepStatus, { circle: string; text: string; 
 
 interface AnalysisStepsProps {
   steps: AnalysisStep[];
+  progressPercent?: number;
 }
 
-export function AnalysisSteps({ steps }: AnalysisStepsProps) {
+export function AnalysisSteps({ steps, progressPercent }: AnalysisStepsProps) {
   return (
-    <ol className="flex flex-wrap items-center gap-4">
-      {steps.map((step, index) => {
-        const style = STATUS_STYLES[step.status];
-        return (
-          <li key={step.id} className="flex items-center gap-2">
-            <span
-              className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium transition-colors ${style.circle}`}
-            >
-              {step.status === "done" ? "✓" : step.status === "error" ? "!" : index + 1}
-            </span>
-            <div className="flex flex-col">
-              <span className={`text-sm ${style.text}`}>{step.label}</span>
-              {style.label ? <span className={`text-xs ${style.text}`}>{style.label}</span> : null}
-            </div>
-            {index < steps.length - 1 ? (
-              <span className="ml-2 hidden text-neutral-300 sm:inline">→</span>
-            ) : null}
-          </li>
-        );
-      })}
-    </ol>
+    <div className="space-y-4">
+      <ol className="flex flex-wrap items-center gap-4">
+        {steps.map((step, index) => {
+          const style = STATUS_STYLES[step.status];
+          return (
+            <li key={step.id} className="flex items-center gap-2">
+              <span
+                className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium transition-colors ${style.circle}`}
+              >
+                {step.status === "running" ? (
+                  <Spinner className="h-3.5 w-3.5" label={`${step.label} 진행 중`} />
+                ) : step.status === "done" ? (
+                  "✓"
+                ) : step.status === "error" ? (
+                  "!"
+                ) : (
+                  index + 1
+                )}
+              </span>
+              <div className="flex flex-col">
+                <span className={`text-sm ${style.text}`}>{step.label}</span>
+                {style.label ? <span className={`text-xs ${style.text}`}>{style.label}</span> : null}
+              </div>
+              {index < steps.length - 1 ? (
+                <span className="ml-2 hidden text-neutral-300 sm:inline">→</span>
+              ) : null}
+            </li>
+          );
+        })}
+      </ol>
+      {typeof progressPercent === "number" ? (
+        <div className="h-1 overflow-hidden rounded-full bg-neutral-100">
+          <div
+            className="h-full rounded-full bg-neutral-900 transition-all duration-500 ease-out"
+            style={{ width: `${progressPercent}%` }}
+            role="progressbar"
+            aria-valuenow={progressPercent}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          />
+        </div>
+      ) : null}
+    </div>
   );
 }

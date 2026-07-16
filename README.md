@@ -201,6 +201,8 @@ npx vercel --prod
 
 > 디자인 시안 이미지를 분석해 Tailwind 기반 코드로 변환하는 AI 어시스턴트(Handoff)를 개발했습니다. 단일 프롬프트 방식 대비 정확도를 높이기 위해 레이아웃 분석-토큰 추출-코드 생성 3단계 파이프라인을 설계했으며, Sandpack을 활용한 라이브 프리뷰로 생성 결과를 즉시 검증할 수 있도록 구현했습니다. Next.js 14 App Router, TypeScript, Zustand, TanStack Query, Gemini Vision API를 사용했고, 핵심 로직 단위 테스트 커버리지 95%를 확보했습니다.
 
+카드용 한 줄 소개, 이력서 bullet, 면접 답변 등 분량별 초안은 [docs/PORTFOLIO.md](docs/PORTFOLIO.md)를 참고하세요.
+
 ## 라이선스
 
 Private — 포트폴리오 용도
